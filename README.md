@@ -18,6 +18,7 @@ O servidor recebe um pacote de 60 bytes (3o bytes 0x3C) mas foi adicionado um pa
 
 Por fim, o tcpdump (sudo tcpdump -i lo0 -X -vv) mostra a transferencia do pacote com o tamanho do primeiro pacote extra no servidor com alguns valores modificados. Mas mostra que não houve perda de dados
 
+```c
 // client
 // 45 00 00 28 41 41 00 00 40 FF EE EE 7F 00 00 01 7F 00 00 01 (1)
 // 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41
@@ -33,6 +34,7 @@ Por fim, o tcpdump (sudo tcpdump -i lo0 -X -vv) mostra a transferencia do pacote
 // 45 00 00 28 41 41 00 00 40 ff ee ee 7f 00 00 01 7f 00 00 01 (1)
 // 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41
 // 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41
+```
 
 # Referencia
 
