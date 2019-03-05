@@ -8,12 +8,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 int main(void)
 {
     int s;
     struct sockaddr_in saddr;
-    unsigned char packet[60];
+    unsigned char packet[0x3C]; // 60
     
     if ((s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW)) < 0) {
         perror("error:");

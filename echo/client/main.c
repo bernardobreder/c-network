@@ -1,58 +1,75 @@
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/ip.h>
-#include <arpa/inet.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <netdb.h>
+#include <netinet/in.h>
 
-#define DEST "127.0.0.1"
-
-int main(void)
-{
+int main(int argc, char *argv[]) {
+    int sockfd, portno, n;
+    struct sockaddr_in serv_addr;
+    struct hostent *server;
     
-    int s;
-    struct sockaddr_in daddr;
-    unsigned char packet[60];
-    /* point the iphdr to the beginning of the packet */
-    struct ip *ip = (struct ip *)packet;
+    char buffer[256];
     
-    if ((s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW)) < 0) {
-        perror("error:");
-        exit(EXIT_FAILURE);
+    if (argc < 3) {
+        fprintf(stderr,"usage %s hostname port\n", argv[0]);
+        exit(0);
     }
     
-    daddr.sin_family = AF_INET;
-    daddr.sin_port = 0; /* not needed in SOCK_RAW */
-    inet_pton(AF_INET, DEST, (struct in_addr *)&daddr.sin_addr.s_addr);
-    memset(daddr.sin_zero, 0, sizeof(daddr.sin_zero));
-    memset(packet, 'A', sizeof(packet));   /* payload will be all As */
+    portno = atoi(argv[2]);
     
-    ip->ip_hl = 5;
-    ip->ip_v = 4;
-    ip->ip_tos = 0;
-    ip->ip_len = htons(40);    /* 16 byte value */
-    ip->ip_off = 0;        /* no fragment */
-    ip->ip_ttl = 64;            /* default value */
-    ip->ip_p = IPPROTO_RAW;    /* protocol at L4 */
-    ip->ip_sum = 0xEEEE;
-    ip->ip_src = daddr.sin_addr;
-    ip->ip_dst = daddr.sin_addr;
-
-    int i = 0;
-    while (i < sizeof(packet)) {
-        fprintf(stderr, "%02X ", packet[i]);
-        i++;
+    /* Create a socket point */
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    
+    if (sockfd < 0) {
+        perror("ERROR opening socket");
+        exit(1);
     }
-    printf("\n");
     
-    printf("sizeof(sockaddr_in) = %ld\n", sizeof(struct sockaddr_in));
+    server = gethostbyname(argv[1]);
     
-    while(1) {
-        if (sendto(s, (char *)packet, sizeof(packet), 0,
-                   (struct sockaddr *)&daddr, (socklen_t)sizeof(daddr)) < 0)
-            perror("packet send error:");
-        usleep(0.1f * 1000000.0f);
+    if (server == NULL) {
+        fprintf(stderr,"ERROR, no such host\n");
+        exit(0);
     }
+    
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+    serv_addr.sin_port = htons(portno);
+    
+    /* Now connect to the server */
+    if (connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+        perror("ERROR connecting");
+        exit(1);
+    }
+    
+    /* Now ask for a message from the user, this message
+     * will be read by server
+     */
+    
+    printf("Please enter the message: ");
+    bzero(buffer,256);
+    fgets(buffer,255,stdin);
+    
+    /* Send message to the server */
+    n = write(sockfd, buffer, strlen(buffer));
+    
+    if (n < 0) {
+        perror("ERROR writing to socket");
+        exit(1);
+    }
+    
+    /* Now read server response */
+    bzero(buffer,256);
+    n = read(sockfd, buffer, 255);
+    
+    if (n < 0) {
+        perror("ERROR reading from socket");
+        exit(1);
+    }
+    
+    printf("%s\n",buffer);
+    return 0;
 }
