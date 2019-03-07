@@ -47,3 +47,4 @@ Por fim, o tcpdump (sudo tcpdump -i lo0 -X -vv) mostra a transferencia do pacote
 - https://sock-raw.org/papers/sock_raw
 - http://www.cs.rpi.edu/~moorthy/Courses/os98/Pgms/socket.html
 - https://www.tutorialspoint.com/unix_sockets/socket_core_functions.htm
+- https://www.youtube.com/watch?v=BkQiZ5rSR8A
